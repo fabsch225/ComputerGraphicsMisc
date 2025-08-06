@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+#include "../gif.h"
 
 // ########### Pendulum constants ###########
 constexpr double g = 9.81;
@@ -88,9 +89,13 @@ int main() {
     SDL_Window* window = SDL_CreateWindow("double pendulum",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WINDOW_SIZE, WINDOW_SIZE, SDL_WINDOW_SHOWN);
-
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    GifWriter gifWriter;
+    const char* gifFilename = "pendulum.gif";
+    GifBegin(&gifWriter, gifFilename, WINDOW_SIZE, WINDOW_SIZE, 2); // 2 = ~20ms per frame
+    std::vector<uint8_t> pixels(WINDOW_SIZE * WINDOW_SIZE * 4); // RGBA
 
     State state = { M_PI / 2, M_PI / 2 + 0.01, 0.0, 0.0 };
 
@@ -130,8 +135,13 @@ int main() {
 
         SDL_RenderPresent(renderer);
 
+        SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA32, pixels.data(), WINDOW_SIZE * 4);
+        GifWriteFrame(&gifWriter, pixels.data(), WINDOW_SIZE, WINDOW_SIZE, 2);
+
         SDL_Delay(10);
     }
+
+    GifEnd(&gifWriter);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
